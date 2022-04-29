@@ -29,15 +29,32 @@ public class ProductController {
     //Show message báo lỗi chuẩn
     ResponseEntity<ResponseObject> findById(@PathVariable Long id){
         Optional<Product> foundProduct = repository.findById(id);
-        if(foundProduct.isPresent()){
-            return ResponseEntity.status(HttpStatus.OK).body(
-              new ResponseObject("OK", "Query product successfully", foundProduct)
-            );
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new ResponseObject("False", "Cannot find product with id = " + id, "")
-            );
-        }
+        return foundProduct.isPresent() ? // true thực hiện dòng trên false chạy dòng dưới
+                ResponseEntity.status(HttpStatus.OK).body(
+                        new ResponseObject("OK", "Query product successfully", foundProduct)
+                ):
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        new ResponseObject("False", "Cannot find product with id = " + id, "")
+        );
     }
+
+//    INSERT
+//    POST MAN: RAW, JSON
+    @PostMapping("/insert")
+    ResponseEntity<ResponseObject> insertProduct(@RequestBody Product newProduct){
+        //Check 2 sản phẩm cùng tên
+        List<Product> foundProduct = repository.findByProductName(newProduct.getProductName().trim());
+        if(foundProduct.size() > 0){
+            // Tìm thấy thì báo lỗi
+            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(
+                    new ResponseObject("Failed", "Product name already taken", "")
+            );
+        }
+
+        //Insert nếu không có gì xảy ra
+        return ResponseEntity.status(HttpStatus.OK).body(
+          new ResponseObject("OK", "Insert product successfully", repository.save(newProduct))
+        );
+    }
+
 }
