@@ -57,4 +57,26 @@ public class ProductController {
         );
     }
 
+
+    //Update, upsert = update if not found --> Insert: Tìm thấy thì update, không thấy thì insert
+    @PutMapping("/{id}")
+    ResponseEntity<ResponseObject> updateProduct(@RequestBody Product newProduct, @PathVariable Long id){
+        // Tìm kiếm xem id có trong danh sách hay kh
+        Product updateProduct = repository.findById(id).map(product -> {
+            // Nếu thấy thì ánh xạ và thực hiện thêm thông tin mới
+            product.setProductName(newProduct.getProductName());
+            product.setYear(newProduct.getYear());
+            product.setPrice(newProduct.getPrice());
+            return repository.save(product);
+        }).orElseGet(() -> {
+            // Nếu kh tìm thấy thì insert
+            newProduct.setId(id);
+            return repository.save(newProduct);
+        });
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ResponseObject("OK", "Update Product Successfully", updateProduct)
+        );
+    }
+
 }
